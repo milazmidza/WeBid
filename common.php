@@ -1,6 +1,6 @@
 <?php
 /***************************************************************************
- *   copyright				: (C) 2008 - 2017 WeBid
+ *   copyright				: (C) 2008 - 2016 WeBid
  *   site					: http://www.webidsupport.com/
  ***************************************************************************/
 
@@ -14,15 +14,17 @@
 
 session_start();
 date_default_timezone_set('UTC'); // to make times more consistent
-define('WeBidDebug', false); // use this for debugging
+$error_reporting = E_ALL^E_NOTICE;
+$error_reporting = E_ALL; // use this for debugging
 define('InWeBid', true);
 define('TrackUserIPs', true);
 
 // file check &
-if (!@include('includes/config.inc.php')) {
-    $install_path = (!defined('InAdmin')) ? 'install/install.php' : '../install/install.php';
-    header('location: ' . $install_path);
-    exit;
+if(!@include('includes/config.inc.php'))
+{
+	$install_path = (!defined('InAdmin')) ? 'install/install.php' : '../install/install.php';
+	header('location: ' . $install_path);
+	exit;
 }
 
 $MD5_PREFIX = (!isset($MD5_PREFIX)) ? 'fhQYBpS5FNs4' : $MD5_PREFIX; // if the user didn't set a code
@@ -37,11 +39,11 @@ define('UPLOAD_PATH', MAIN_PATH . UPLOAD_FOLDER);
 define('IMAGE_CACHE_PATH', UPLOAD_PATH . 'cache/');
 
 include INCLUDE_PATH . 'errors.inc.php'; //error handler functions
+include INCLUDE_PATH . 'dates.inc.php';
 
 // classes
 include INCLUDE_PATH . 'database/Database.php';
 include INCLUDE_PATH . 'database/DatabasePDO.php';
-include INCLUDE_PATH . 'Date.php';
 include INCLUDE_PATH . 'functions_global.php';
 include INCLUDE_PATH . 'class_email_handler.php';
 include INCLUDE_PATH . 'class_MPTTcategories.php';
@@ -51,34 +53,32 @@ include INCLUDE_PATH . 'template/Template.php';
 
 // connect to the database
 $db = new DatabasePDO();
-if (isset($CHARSET)) {
-    $db->connect($DbHost, $DbUser, $DbPassword, $DbDatabase, $DBPrefix, $CHARSET);
-} else {
-    $db->connect($DbHost, $DbUser, $DbPassword, $DbDatabase, $DBPrefix);
+if (isset($CHARSET))
+{
+	$db->connect($DbHost, $DbUser, $DbPassword, $DbDatabase, $DBPrefix, $CHARSET);
 }
-$db->direct_query("SET time_zone = '+0:00'");
+else
+{
+	$db->connect($DbHost, $DbUser, $DbPassword, $DbDatabase, $DBPrefix);
+}
 
 $system = new global_class();
 $template = new Template();
 $user = new User();
 include INCLUDE_PATH . 'messages.inc.php';
 $system->loadAuctionTypes();
-if (!(defined('WeBidDebug') && WeBidDebug)) {
-    $error_reporting = E_ALL^E_NOTICE;
-} else {
-    $error_reporting = E_ALL;
-}
 set_error_handler('WeBidErrorHandler', $error_reporting);
 
-if ($user->logged_in) {
-    $system->tdiff = $system->getUserOffset(time(), $user->user_data['timezone']);
-    $system->ctime = $system->getUserTimestamp(time(), $user->user_data['timezone']) + $system->tdiff;
+if($user->logged_in)
+{
+	$system->tdiff = $system->getUserOffset(time(), $user->user_data['timezone']);
+	$system->ctime = $system->getUserTimestamp(time(), $user->user_data['timezone']) + $system->tdiff;
 }
-$dt = new Date($system, $user);
 
 // delete REDIRECT_AFTER_LOGIN value automatically so you are never forwarded to an old page
-if (isset($_SESSION['REDIRECT_AFTER_LOGIN']) && !defined('AtLogin')) {
-    unset($_SESSION['REDIRECT_AFTER_LOGIN']);
+if(isset($_SESSION['REDIRECT_AFTER_LOGIN']) && !defined('AtLogin'))
+{
+	unset($_SESSION['REDIRECT_AFTER_LOGIN']);
 }
 
 $template->set_template();
