@@ -25,3 +25,7 @@ RewriteRule .* - [F,L]
 
 # If you are getting 500 errors try setting this to your charset
 # AddDefaultCharset utf-8
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# This domain inherits the “PHP” package.
+# php -- END cPanel-generated handler, do not edit
